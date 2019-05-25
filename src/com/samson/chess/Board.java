@@ -1,8 +1,6 @@
 package com.samson.chess;
 
-import com.samson.chess.pieces.Bishop;
-import com.samson.chess.pieces.King;
-import com.samson.chess.pieces.Pawn;
+import com.samson.chess.pieces.*;
 
 import java.awt.*;
 
@@ -14,14 +12,14 @@ public class Board {
     private boolean turn;
 
     public static final String[][] initialBoard = {
-            {"Kb", "Kb", "Kb", "Bb", "Bb", "Bb", "Kb", "Kb"},
+            {"Rb", "Nb", "Kb", "Qb", "Kb", "Bb", "Nb", "Rb"},
             {"Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb"},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw"},
-            {"Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw"}
+            {"Rw", "Nw", "Bw", "Qw", "Kw", "Bw", "Nw", "Kw"}
     };
 
     public Board() {
@@ -52,6 +50,15 @@ public class Board {
                         break;
                     case 'B':
                         board[j][7-i] = new Bishop(color);
+                        break;
+                    case 'N':
+                        board[j][7-i] = new Knight(color);
+                        break;
+                    case 'R':
+                        board[j][7-i] = new Rook(color);
+                        break;
+                    case 'Q':
+                        board[j][7-i] = new Queen(color);
                         break;
                 }
             }
