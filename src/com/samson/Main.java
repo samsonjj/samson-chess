@@ -7,8 +7,8 @@ import java.awt.*;
 public class Main {
 
     static String[] moves = {
-            "e2e4",
-            "e7e5"
+            "e1e2",
+            "e8e7"
     };
 
     public static void main(String[] args) {
@@ -20,8 +20,9 @@ public class Main {
 
 
         board.printBoard();
+        System.out.println();
         for(String nMove : moves) {
-            board.attemptNotationMove(nMove);
+            board.performMove(nMove);
             board.printBoard();
             System.out.println();
         }

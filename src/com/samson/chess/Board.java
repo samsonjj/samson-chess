@@ -8,12 +8,13 @@ import java.awt.*;
 public class Board {
 
     private Piece[][] board;
-    private Dimension enPassantTargetSquare;
-    private Dimension enPassantPieceSquare;
-
+    private Square enPassantTargetSquare;
+    private Square enPassantPieceSquare;
+    private boolean turn;
 
     public Board() {
         initGamePieces();
+        turn = Piece.WHITE;
     }
 
     public void initGamePieces() {
@@ -28,57 +29,94 @@ public class Board {
                     board[i][j] = new King(Piece.BLACK);
                 }
                 else if(j == 1) {
-                    board[i][j] = new Pawn(Piece.WHITE);
+                    //board[i][j] = new Pawn(Piece.WHITE);
                 }
                 else if(j == 6) {
-                    board[i][j] = new Pawn(Piece.BLACK);
+                    //board[i][j] = new Pawn(Piece.BLACK);
                 }
             }
         }
     }
 
-    public boolean attemptMove(Dimension from, Dimension target) {
+//    public boolean attemptMove(Square from, Square target) {
+//
+//        // Check if the squares exist on the board.
+//        if(!isLegalSquare(from) || !isLegalSquare(target)) {
+//            return false;
+//        }
+//
+//        for(Move possibleMove : getPiece(from).getMoves(from.x, from.y, this)) {
+//            if(target.x == possibleMove.targetSquare().x && target.y == possibleMove.targetSquare().y) {
+//
+//                // update board pieces.
+//                move(possibleMove);
+//
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//    }
 
-        // Check legal squares
-        if(!isLegalSquare(from) || !isLegalSquare(target)) {
+//    public boolean isValidMove(Square from, Square target) {
+//
+//        // Check if the squares exist on the board.
+//        if(!isLegalSquare(from) || !isLegalSquare(target)) {
+//            return false;
+//        }
+//
+//        for(Move possibleMove : getPiece(from).getMoves(from.x, from.y, this)) {
+//            if(target.x == possibleMove.targetSquare().x && target.y == possibleMove.targetSquare().y) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//    }
+
+    public boolean isValidMove(Square fromSquare, Square targetSquare) {
+        if(getPiece(fromSquare) == null) {
             return false;
         }
-
-        // Check from piece, no ally to piece, or to king
-        if(getPiece(from) == null || (getPiece(target) != null && (getPiece(target).getClass() == King.class || getPiece(from).color ==  getPiece(target).color))) {
-            return false;
-        }
-
-        for(Move possibleMove : getPiece(from).getMoves(from.width, from.height, this)) {
-            if(target.width == possibleMove.targetSquare.width && target.height == possibleMove.targetSquare.height) {
-
-                // update board pieces.
-                move(possibleMove);
-
-                return true;
-            }
-        }
-
-        return false;
+        return getPiece(fromSquare).isValidMove(fromSquare, targetSquare, this);
     }
 
-    public void move(Move move) {
-        board[move.fromSquare.width][move.fromSquare.height] = null;
-        board[move.targetSquare.width][move.targetSquare.height] = move.fromPiece;
+//    private void move(Move move) {
+//        board[move.fromSquare().x][move.fromSquare().y] = null;
+//        board[move.targetSquare().x][move.targetSquare().y] = move.fromPiece();
+//
+//        if(move.consequence() != null) {
+//            move(move.consequence());
+//        }
+//
+//        // update enpassant square
+//        if(move.fromPiece().getClass() == Pawn.class && Math.abs(move.fromSquare().y - move.targetSquare().y) == 2) {
+//            this.enPassantPieceSquare = move.targetSquare();
+//            this.enPassantTargetSquare = new Square(move.fromSquare().x, (move.targetSquare().y + move.fromSquare().y) / 2);
+//        }
+//        else {
+//            this.enPassantTargetSquare = null;
+//            this.enPassantPieceSquare = null;
+//        }
+//    }
 
-        if(move.consequence != null) {
-            move(move.consequence);
+    public Move performMove(Square fromSquare, Square targetSquare) {
+        if(getPiece(fromSquare) == null) {
+            throw new IllegalChessMoveException("No piece was found on the given fromSquare on the board.");
         }
+        Move moveResult = getPiece(fromSquare).performMove(fromSquare, targetSquare, this);
+        this.turn = !this.turn;
+        return moveResult;
+    }
 
-        // update enpassant square
-        if(move.fromPiece.getClass() == Pawn.class && Math.abs(move.fromSquare.height - move.targetSquare.height) == 2) {
-            this.enPassantPieceSquare = move.targetSquare;
-            this.enPassantTargetSquare = new Dimension(move.fromSquare.width, (move.targetSquare.height + move.fromSquare.height) / 2);
-        }
-        else {
-            this.enPassantTargetSquare = null;
-            this.enPassantPieceSquare = null;
-        }
+    public Move performMove(String notation) {
+
+        int xi = Square.fileToInt(notation.charAt(0));
+        int yi = Square.rankToInt(notation.charAt(1));
+        int xf = Square.fileToInt(notation.charAt(2));
+        int yf = Square.rankToInt(notation.charAt(3));
+
+        return performMove(new Square(xi, yi), new Square(xf, yf));
     }
 
     public void revertMove(Move move) {} // TODO
@@ -88,7 +126,7 @@ public class Board {
             for(int y = 0; y < 8; y++) {
                 if(board[x][y] != null && board[x][y].color != color) {
                     for(Move move: board[x][y].getMoves(x, y, this)) {
-                        if(move.toPiece.getClass() == King.class) {
+                        if(move.targetPiece().getClass() == King.class) {
                             return true;
                         }
                     }
@@ -101,20 +139,8 @@ public class Board {
     public static boolean isLegalSquare(int x, int y) {
         return x < 8 && x >= 0 && y < 8 && y >= 0;
     }
-    public static boolean isLegalSquare(Dimension d) {
-        return d.width < 8 && d.width >= 0 && d.height < 8 && d.height >= 0;
-    }
-
-    public Piece getPiece(Dimension d) {
-        return board[d.width][d.height];
-    }
-
-    public Dimension getEnPassantTargetSquare() {
-        return enPassantTargetSquare;
-    }
-
-    public Dimension getEnPassantPieceSquare() {
-        return enPassantPieceSquare;
+    public static boolean isLegalSquare(Square d) {
+        return d.x < 8 && d.x >= 0 && d.y < 8 && d.y >= 0;
     }
 
     public void printBoard() {
@@ -126,17 +152,22 @@ public class Board {
         }
     }
 
-    public boolean attemptNotationMove(String notation) {
 
-        int xi = "abcdefgh".indexOf(notation.charAt(0));
-        int yi = "12345678".indexOf(notation.charAt(1));
-        int xf = "abcdefgh".indexOf(notation.charAt(2));
-        int yf = "12345678".indexOf(notation.charAt(3));
+    /* Getters and Setters */
 
-        if(xi < 0 || yi < 0 || xf < 0 || yf < 0) {
-            return false;
-        }
+    public Piece[][] getBoard() { return board; }
 
-        return attemptMove(new Dimension(xi, yi), new Dimension(xf, yf));
+    public Piece getPiece(Square d) {
+        return board[d.x][d.y];
     }
+
+    public Square getEnPassantTargetSquare() {
+        return enPassantTargetSquare;
+    }
+
+    public Square getEnPassantPieceSquare() {
+        return enPassantPieceSquare;
+    }
+
+    public boolean getTurn() { return turn; }
 }
