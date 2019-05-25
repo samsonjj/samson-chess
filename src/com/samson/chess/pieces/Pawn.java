@@ -1,9 +1,6 @@
 package com.samson.chess.pieces;
 
-import com.samson.chess.Board;
-import com.samson.chess.Move;
-import com.samson.chess.Piece;
-import com.samson.chess.Square;
+import com.samson.chess.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -11,44 +8,107 @@ import java.util.ArrayList;
 public class Pawn extends Piece {
 
     public Pawn(boolean color) {
-        super(color);
-        this.letter = 'P';
+        super(color, 'P');
     }
 
     /*
      *  A pawn can move one square foward. It can move two if it has not moved yet.
      *  It can move diagonally forward 1 square if it is capturing an enemy piece. =
      */
-    public ArrayList<Move> getMoves(int x, int y, Board board) {
-        ArrayList<Move> moves = new ArrayList<>();
+//    @Override
+////    public ArrayList<Move> getMoves(int x, int y, Board board) {
+////        ArrayList<Move> moves = new ArrayList<>();
+////
+////        // Add one square moves.
+////        Square oneSquareMove = new Square(x, this.color == Piece.WHITE ? y+1 : y-1);
+////        if(Board.isLegalSquare(oneSquareMove)  && board.getPiece(oneSquareMove) == null){
+////            moves.add(new Move(new Square(x, y), oneSquareMove, this, null));
+////
+////            // Add two square moves. This is only allowed if the one square move is legal.
+////            if(!this.hasMoved(this.color, x, y)) {
+////                Square twoSquareMove = new Square(x, this.color == Piece.WHITE ? y + 2 : y - 2);
+////                if(Board.isLegalSquare(twoSquareMove) && board.getPiece(twoSquareMove) == null) {
+////                    moves.add(new Move(new Square(x, y), twoSquareMove, this, null));
+////                }
+////            }
+////        }
+////
+////        // Add capturing moves, including enpassant.
+////        for(int dx = -1; dx <= 1; dx+=2) {
+////            Square targetSquare = new Square(x+dx, y + (this.color == Piece.WHITE ? 1 : -1));
+////            if(board.getPiece(targetSquare) != null && board.getPiece(targetSquare).color != this.color) {
+////                moves.add(new Move(new Square(x,y), targetSquare, this, board.getPiece(targetSquare)));
+////            }
+////            else if(board.getEnPassantTargetSquare().equals(targetSquare)) {
+////                moves.add(new Move(new Square(x,y), targetSquare, this, board.getPiece(board.getEnPassantPieceSquare()), true,
+////                        new Move(board.getEnPassantPieceSquare(), null, board.getPiece(board.getEnPassantPieceSquare()), null)));
+////            }
+////        }
+////
+////        return moves;
+////    }
 
-        // Add one square moves.
-        Square oneSquareMove = new Square(x, this.color == Piece.WHITE ? y+1 : y-1);
-        if(Board.isLegalSquare(oneSquareMove)  && board.getPiece(oneSquareMove) == null){
-            moves.add(new Move(new Square(x, y), oneSquareMove, this, null));
-
-            // Add two square moves. This is only allowed if the one square move is legal.
-            if(!this.hasMoved(this.color, x, y)) {
-                Square twoSquareMove = new Square(x, this.color == Piece.WHITE ? y + 2 : y - 2);
-                if(Board.isLegalSquare(twoSquareMove) && board.getPiece(twoSquareMove) == null) {
-                    moves.add(new Move(new Square(x, y), twoSquareMove, this, null));
-                }
-            }
+    @Override
+    public boolean isValidMove(Square fromSquare, Square targetSquare, Board board) {
+        if(!super.isValidMove(fromSquare, targetSquare, board)) {
+            return false;
         }
 
-        // Add capturing moves, including enpassant.
-        for(int dx = -1; dx <= 1; dx+=2) {
-            Square targetSquare = new Square(x+dx, y + (this.color == Piece.WHITE ? 1 : -1));
-            if(board.getPiece(targetSquare) != null && board.getPiece(targetSquare).color != this.color) {
-                moves.add(new Move(new Square(x,y), targetSquare, this, board.getPiece(targetSquare)));
-            }
-            else if(board.getEnPassantTargetSquare() == targetSquare) {
-                moves.add(new Move(new Square(x,y), targetSquare, this, board.getPiece(board.getEnPassantPieceSquare()), true,
-                        new Move(board.getEnPassantPieceSquare(), null, board.getPiece(board.getEnPassantPieceSquare()), null)));
-            }
+        int direction = this.color == Piece.WHITE ? 1 : -1;
+
+        // one move forward
+        // the target square must be empty
+        if(fromSquare.getY() + direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
+                && board.getPiece(targetSquare) == null) {
+            return true;
         }
 
-        return moves;
+        // two moves forward
+        // target square and intermediate square must be empty
+        if(fromSquare.getY() + 2 * direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
+                && board.getPiece(fromSquare.getX(), fromSquare.getY() + direction) == null
+                && board.getPiece(targetSquare) == null) {
+            return true;
+        }
+
+        Piece targetPiece = board.getPiece(targetSquare);
+
+        // capture
+        if(fromSquare.getY() + direction == targetSquare.getY()
+                && Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
+                && targetPiece != null && targetPiece.color != this.color) {
+            return true;
+        }
+        // enpassant capture
+        if(fromSquare.getY() + direction == targetSquare.getY()
+                && Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
+                && board.getEnPassantTargetSquare().equals(targetSquare)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public Move performMove(Square fromSquare, Square targetSquare, Board board) {
+        if(!this.isValidMove(fromSquare, targetSquare, board)) {
+            throw new IllegalChessMoveException();
+        }
+
+        // if double move, change enpassant squares
+        int direction = this.color == Piece.WHITE ? 1 : -1;
+        if(fromSquare.getY() + 2 * direction == targetSquare.getY()) {
+            board.setEnPassantTargetSquare(new Square(fromSquare.getX(), fromSquare.getY() + direction));
+            board.setEnPassantPieceSquare(targetSquare);
+        }
+        // check if enpassant
+        else if(Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
+                && board.getEnPassantTargetSquare().equals(targetSquare)) {
+            Square enPassantPieceSquare = board.getEnPassantPieceSquare();
+            board.getBoard()[enPassantPieceSquare.getX()][enPassantPieceSquare.getY()] = null;
+        }
+
+        return super.performMove(fromSquare, targetSquare, board); // TODO
     }
 
     /*

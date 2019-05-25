@@ -1,7 +1,8 @@
 package com.samson.chess;
 
-public class Square {
-    int x, y;
+// @Immutable
+public final class Square {
+    private final int x, y;
     public Square(int x, int y) {
         this.x = x;
         this.y = y;
@@ -38,5 +39,12 @@ public class Square {
     }
     public int getY() {
         return y;
+    }
+
+    public boolean equals(Object obj) {
+        if(obj == null) return false;
+        if(!(obj instanceof Square)) return false;
+        Square square = (Square) obj;
+        return square.getX() == this.x && square.getY() == this.y;
     }
 }

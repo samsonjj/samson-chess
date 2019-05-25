@@ -1,5 +1,6 @@
 package com.samson.chess;
 
+import com.samson.chess.pieces.Bishop;
 import com.samson.chess.pieces.King;
 import com.samson.chess.pieces.Pawn;
 
@@ -12,6 +13,17 @@ public class Board {
     private Square enPassantPieceSquare;
     private boolean turn;
 
+    public static final String[][] initialBoard = {
+            {"Kb", "Kb", "Kb", "Bb", "Bb", "Bb", "Kb", "Kb"},
+            {"Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb"},
+            {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+            {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+            {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+            {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
+            {"Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw"},
+            {"Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw", "Kw"}
+    };
+
     public Board() {
         initGamePieces();
         turn = Piece.WHITE;
@@ -20,19 +32,27 @@ public class Board {
     public void initGamePieces() {
         board = new Piece[8][8];
         enPassantTargetSquare = null;
-        for(int i = 0; i < 8; i++) {
-            for(int j = 0; j < 8; j++) {
-                if(j == 0) {
-                    board[i][j] = new King(Piece.WHITE);
+        for(int i = 0; i < initialBoard.length; i++) {
+            for(int j = 0; j < initialBoard[i].length; j++) {
+                String s = initialBoard[i][j];
+                char pieceCharacter = s.charAt(0);
+                char colorCharacter = s.charAt(1);
+
+                boolean color = colorCharacter == 'w' ? Piece.WHITE : Piece.BLACK;
+
+                if(pieceCharacter == ' ') {
+                    continue;
                 }
-                else if(j == 7) {
-                    board[i][j] = new King(Piece.BLACK);
-                }
-                else if(j == 1) {
-                    //board[i][j] = new Pawn(Piece.WHITE);
-                }
-                else if(j == 6) {
-                    //board[i][j] = new Pawn(Piece.BLACK);
+                switch(pieceCharacter) {
+                    case 'K':
+                        board[j][7-i] = new King(color);
+                        break;
+                    case 'P':
+                        board[j][7-i] = new Pawn(color);
+                        break;
+                    case 'B':
+                        board[j][7-i] = new Bishop(color);
+                        break;
                 }
             }
         }
@@ -122,13 +142,20 @@ public class Board {
     public void revertMove(Move move) {} // TODO
 
     public boolean inCheck(boolean color) {
+        Square kingSquare = null;
+        for(int x = 0; x < 8; x++) {
+            for (int y = 0; y < 8; y++) {
+                if(getPiece(x,y) != null && getPiece(x,y) instanceof King && getPiece(x,y).color == color) {
+                    kingSquare = new Square(x,y);
+                    break;
+                }
+            }
+        }
         for(int x = 0; x < 8; x++) {
             for(int y = 0; y < 8; y++) {
                 if(board[x][y] != null && board[x][y].color != color) {
-                    for(Move move: board[x][y].getMoves(x, y, this)) {
-                        if(move.targetPiece().getClass() == King.class) {
-                            return true;
-                        }
+                    if (isValidMove(new Square(x, y), kingSquare)) {
+                        return true;
                     }
                 }
             }
@@ -139,8 +166,8 @@ public class Board {
     public static boolean isLegalSquare(int x, int y) {
         return x < 8 && x >= 0 && y < 8 && y >= 0;
     }
-    public static boolean isLegalSquare(Square d) {
-        return d.x < 8 && d.x >= 0 && d.y < 8 && d.y >= 0;
+    public static boolean isLegalSquare(Square square) {
+        return square.getX() < 8 && square.getX() >= 0 && square.getY() < 8 && square.getY() >= 0;
     }
 
     public void printBoard() {
@@ -157,16 +184,24 @@ public class Board {
 
     public Piece[][] getBoard() { return board; }
 
-    public Piece getPiece(Square d) {
-        return board[d.x][d.y];
+    public Piece getPiece(Square square) {
+        return getPiece(square.getX(), square.getY());
+    }
+    public Piece getPiece(int x, int y) {
+        return board[x][y];
     }
 
     public Square getEnPassantTargetSquare() {
         return enPassantTargetSquare;
     }
-
     public Square getEnPassantPieceSquare() {
         return enPassantPieceSquare;
+    }
+    public void setEnPassantTargetSquare(Square square) {
+        enPassantTargetSquare = square;
+    }
+    public void setEnPassantPieceSquare(Square square) {
+        enPassantPieceSquare = square;
     }
 
     public boolean getTurn() { return turn; }

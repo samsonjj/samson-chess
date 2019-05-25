@@ -13,14 +13,19 @@ public abstract class Piece {
 
     public static final boolean WHITE = true;
     public static final boolean BLACK = false;
-    public char letter = 'x';
+    public final char letter;
     public boolean color;
 
     public Piece(boolean color) {
         this.color = color;
+        this.letter = 'x';
+    }
+    public Piece(boolean color, char letter) {
+        this.color = color;
+        this.letter = letter;
     }
 
-    public abstract ArrayList<Move> getMoves(int x, int y, Board board);
+//    public abstract ArrayList<Move> getMoves(int x, int y, Board board);
 
     public boolean isValidMove(Square fromSquare, Square targetSquare, Board board) {
         if(!Board.isLegalSquare(fromSquare) || !Board.isLegalSquare(targetSquare)) {
