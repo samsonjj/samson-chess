@@ -2,9 +2,6 @@ package com.samson.chess.pieces;
 
 import com.samson.chess.*;
 
-import java.awt.*;
-import java.util.ArrayList;
-
 public class Pawn extends Piece {
 
     public Pawn(boolean color) {
@@ -65,7 +62,8 @@ public class Pawn extends Piece {
 
         // two moves forward
         // target square and intermediate square must be empty
-        if(fromSquare.getY() + 2 * direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
+        if(!hasMoved(this.color, fromSquare.getX(), fromSquare.getY())
+                && fromSquare.getY() + 2 * direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
                 && board.getPiece(fromSquare.getX(), fromSquare.getY() + direction) == null
                 && board.getPiece(targetSquare) == null) {
             return true;
@@ -73,24 +71,11 @@ public class Pawn extends Piece {
 
         Piece targetPiece = board.getPiece(targetSquare);
 
-        // capture
-        if(fromSquare.getY() + direction == targetSquare.getY()
-                && Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
-                && targetPiece != null && targetPiece.color != this.color) {
-            return true;
-        }
-        // enpassant capture
-        if(fromSquare.getY() + direction == targetSquare.getY()
-                && Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
-                && board.getEnPassantTargetSquare().equals(targetSquare)) {
-            return true;
-        }
-
-        return false;
+        return attacksSquare(fromSquare, targetSquare, board);
     }
 
     @Override
-    public Move performMove(Square fromSquare, Square targetSquare, Board board) {
+    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
         if(!this.isValidMove(fromSquare, targetSquare, board)) {
             throw new IllegalChessMoveException();
         }
@@ -105,10 +90,12 @@ public class Pawn extends Piece {
         else if(Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
                 && board.getEnPassantTargetSquare().equals(targetSquare)) {
             Square enPassantPieceSquare = board.getEnPassantPieceSquare();
-            board.getBoard()[enPassantPieceSquare.getX()][enPassantPieceSquare.getY()] = null;
+            Board.BoardChange changes = super.performMove(fromSquare, targetSquare, board);
+            changes.add(new Board.SquareChange(enPassantPieceSquare, board.getPiece(enPassantPieceSquare), null));
+            return changes;
         }
 
-        return super.performMove(fromSquare, targetSquare, board); // TODO
+        return super.performMove(fromSquare, targetSquare, board);
     }
 
     /*
@@ -117,4 +104,30 @@ public class Pawn extends Piece {
     public static boolean hasMoved(boolean color, int x, int y) {
         return !((color == WHITE && y == 1) || (color == BLACK && y == 6));
     }
+
+    @Override
+    public boolean attacksSquare(Square fromSquare, Square targetSquare, Board board) {
+
+        if(!super.attacksSquare(fromSquare, targetSquare, board)) {
+            return false;
+        }
+
+        int direction = this.color == Piece.WHITE ? 1 : -1;
+
+        // capture
+        if(fromSquare.getY() + direction == targetSquare.getY()
+                && Math.abs(fromSquare.getX() - targetSquare.getX()) == 1) {
+            return true;
+        }
+        // enpassant capture
+        if(fromSquare.getY() + direction == targetSquare.getY()
+                && Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
+                && board.getEnPassantTargetSquare().equals(targetSquare)) {
+            return true;
+        }
+
+        return false;
+    }
+
+
 }

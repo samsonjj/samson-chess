@@ -2,11 +2,7 @@ package com.samson.chess.pieces;
 
 import com.samson.chess.Board;
 import com.samson.chess.Move;
-import com.samson.chess.Piece;
 import com.samson.chess.Square;
-
-import java.awt.*;
-import java.util.ArrayList;
 
 public class Knight extends Piece {
 
@@ -17,6 +13,20 @@ public class Knight extends Piece {
     @Override
     public boolean isValidMove(Square fromSquare, Square targetSquare, Board board) {
         if(!super.isValidMove(fromSquare, targetSquare, board)) {
+            return false;
+        }
+
+        return attacksSquare(fromSquare, targetSquare, board);
+    }
+
+    @Override
+    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
+        return super.performMove(fromSquare, targetSquare, board);
+    }
+
+    @Override
+    public boolean attacksSquare(Square fromSquare, Square targetSquare, Board board) {
+        if(!super.attacksSquare(fromSquare, targetSquare, board)) {
             return false;
         }
 
@@ -31,11 +41,5 @@ public class Knight extends Piece {
 
         return true;
     }
-
-    @Override
-    public Move performMove(Square fromSquare, Square targetSquare, Board board) {
-        return super.performMove(fromSquare, targetSquare, board); // TODO
-    }
-
 }
 

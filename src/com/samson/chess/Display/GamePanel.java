@@ -1,9 +1,8 @@
 package com.samson.chess.Display;
 
 import com.samson.chess.Board;
-import com.samson.chess.Piece;
+import com.samson.chess.pieces.Piece;
 import com.samson.chess.Square;
-import com.samson.chess.pieces.King;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -121,7 +120,6 @@ public class GamePanel extends JPanel implements MouseListener {
         return board;
     }
     public void clickSquare(int x, int y) {
-        System.out.println(x + " " + y);
         Square clickedSquare = new Square(x, y);
         if(highlightedSquare == null) {
             if(board.getPiece(clickedSquare) != null && board.getPiece(clickedSquare).color == board.getTurn()) {
@@ -148,7 +146,6 @@ public class GamePanel extends JPanel implements MouseListener {
     }
 
     public void mouseReleased(MouseEvent e) {
-        System.out.println(e.getX() + ", " + e.getY());
         clickSquare((e.getX()-50) / 50, 7 - (e.getY()-50) / 50);
         this.repaint();
     }

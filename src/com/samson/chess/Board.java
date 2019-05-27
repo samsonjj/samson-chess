@@ -24,11 +24,19 @@ public class Board {
             {"Rw", "Nw", "Bw", "Qw", "Kw", "Bw", "Nw", "Rw"}
     };
 
-    static class BoardChange {
+    public static class BoardChange {
         ArrayList<SquareChange> squareChanges = new ArrayList<>();
+        Square beforeEnPassantTargetSquare;
+        Square afterEnPassantTargetSquare;
+        Square beforeEnPassantPieceSquare;
+        Square afterEnPassantPieceSquare;
+        
+        public BoardChange() { }
+        public void add(SquareChange change) { squareChanges.add(change); }
+        public ArrayList<SquareChange> getSquareChanges() { return squareChanges; }
     }
 
-    static class SquareChange {
+    public static class SquareChange {
         Square square;
         Piece before;
         Piece after;
@@ -94,9 +102,20 @@ public class Board {
         if(getPiece(fromSquare) == null) {
             throw new IllegalChessMoveException("No piece was found on the given fromSquare on the board.");
         }
-        Move moveResult = getPiece(fromSquare).performMove(fromSquare, targetSquare, this);
-        this.turn = !this.turn;
-        return moveResult;
+        BoardChange changes = getPiece(fromSquare).performMove(fromSquare, targetSquare, this);
+        for(SquareChange change : changes.getSquareChanges()) {
+            this.board[change.square.getX()][change.square.getY()] = change.after;
+        }
+
+        // TODO
+        if(inCheck(this.turn)) {
+            System.out.println("IN CHECK!");
+            revertMove(changes);
+        }
+        else {
+            this.turn = !this.turn;
+        }
+        return new Move();
     }
 
     public Move performMove(String notation) {
@@ -109,7 +128,11 @@ public class Board {
         return performMove(new Square(xi, yi), new Square(xf, yf));
     }
 
-    public void revertMove(Move move) {} // TODO
+    public void revertMove(BoardChange move) {
+        for(SquareChange change : move.getSquareChanges()) {
+            board[change.square.getX()][change.square.getY()] = change.before;
+        }
+    }
 
     public boolean inCheck(boolean color) {
         Square kingSquare = null;
@@ -119,10 +142,15 @@ public class Board {
                     kingSquare = new Square(i,j);
                     for(int x = 0; x < 8; x++) {
                         for(int y = 0; y < 8; y++) {
-                            if(board[x][y] != null && board[x][y].color != color) {
-                                if (getPiece(kingSquare).isValidMove(new Square(x, y), kingSquare, this)) {
-                                    return true;
-                                }
+//                            if(board[x][y] != null && board[x][y].color != color) {
+//                                if (getPiece(kingSquare).isValidMove(new Square(x, y), kingSquare, this)) {
+//                                    return true;
+//                                }
+//                            }
+                            if(getPiece(x, y) != null
+                                    && getPiece(x, y).color != color
+                                    && getPiece(x, y).attacksSquare(new Square(x, y), kingSquare, this)) {
+                                return true;
                             }
                         }
                     }

@@ -1,7 +1,6 @@
 package com.samson.chess;
 
-import java.awt.*;
-import java.util.ArrayList;
+import com.samson.chess.pieces.Piece;
 
 public class Move {
 

@@ -2,11 +2,7 @@ package com.samson.chess.pieces;
 
 import com.samson.chess.Board;
 import com.samson.chess.Move;
-import com.samson.chess.Piece;
 import com.samson.chess.Square;
-
-import java.awt.*;
-import java.util.ArrayList;
 
 public class Bishop extends Piece {
 
@@ -35,6 +31,20 @@ public class Bishop extends Piece {
             return false;
         }
 
+        return attacksSquare(fromSquare, targetSquare, board);
+    }
+
+    @Override
+    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
+        return super.performMove(fromSquare, targetSquare, board);
+    }
+
+    @Override
+    public boolean attacksSquare(Square fromSquare, Square targetSquare, Board board) {
+        if(!super.attacksSquare(fromSquare, targetSquare, board)) {
+            return false;
+        }
+
         // Make sure it is a square reachable by a bishop.
         int dx = targetSquare.getX() - fromSquare.getX();
         int dy = targetSquare.getY() - fromSquare.getY();
@@ -46,7 +56,7 @@ public class Bishop extends Piece {
         // Make sure there are no pieces in the way
         for(int i = 1; Math.abs(i * xDirection) < Math.abs(dx); i++) {
             Piece intermediatePiece =
-                board.getPiece(fromSquare.getX() + i * xDirection, fromSquare.getY() + i * yDirection);
+                    board.getPiece(fromSquare.getX() + i * xDirection, fromSquare.getY() + i * yDirection);
             if(intermediatePiece != null) {
                 return false;
             }
@@ -54,10 +64,4 @@ public class Bishop extends Piece {
 
         return true;
     }
-
-    @Override
-    public Move performMove(Square fromSquare, Square targetSquare, Board board) {
-        return super.performMove(fromSquare, targetSquare, board); // TODO
-    }
-
 }

@@ -1,9 +1,8 @@
-package com.samson.chess;
+package com.samson.chess.pieces;
 
-import com.samson.chess.pieces.King;
-
-import java.awt.*;
-import java.util.ArrayList;
+import com.samson.chess.Board;
+import com.samson.chess.IllegalChessMoveException;
+import com.samson.chess.Square;
 
 /*
  *  Objects inheriting Piece have a responsibility to determine target squares given the board,
@@ -14,7 +13,7 @@ public abstract class Piece {
     public static final boolean WHITE = true;
     public static final boolean BLACK = false;
     public final char letter;
-    public boolean color;
+    public final boolean color;
 
     public Piece(boolean color) {
         this.color = color;
@@ -46,7 +45,7 @@ public abstract class Piece {
         return true;
     }
 
-    public Move performMove(Square fromSquare, Square targetSquare, Board board) {
+    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
         if(!isValidMove(fromSquare, targetSquare, board)) {
             throw new IllegalChessMoveException();
         }
@@ -54,10 +53,21 @@ public abstract class Piece {
         // save target piece in variable, since it may change during move.
         Piece targetPiece = board.getPiece(targetSquare);
 
-        Piece[][] boardPieces = board.getBoard();
-        boardPieces[fromSquare.getX()][fromSquare.getY()] = null;
-        boardPieces[targetSquare.getX()][targetSquare.getY()] = this;
+        Board.BoardChange changes = new Board.BoardChange();
 
-        return new Move(fromSquare, targetSquare, board.getPiece(fromSquare), targetPiece);
+        changes.add(new Board.SquareChange(fromSquare, board.getPiece(fromSquare), null));
+        changes.add(new Board.SquareChange(targetSquare, board.getPiece(targetSquare), this));
+
+        return changes;
+    }
+
+    public boolean attacksSquare(Square fromSquare, Square targetSquare, Board board) {
+        if(!Board.isLegalSquare(fromSquare) || !Board.isLegalSquare(targetSquare)) {
+            return false;
+        }
+        if(board.getPiece(fromSquare) != this) {
+            return false;
+        }
+        return true;
     }
 }
