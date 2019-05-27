@@ -1,8 +1,12 @@
 package com.samson;
 
 import com.samson.chess.Board;
+import com.samson.chess.Display.GameFrame;
 
 import java.awt.*;
+import java.util.Scanner;
+
+import static java.lang.Thread.sleep;
 
 public class Main {
 
@@ -11,21 +15,30 @@ public class Main {
             "e7e6", // black
     };
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         System.out.println("Starting game.");
 
-        Board board = new Board();
-        System.out.println("Board initialized.");
+//        Board board = new Board();
+//        System.out.println("Board initialized.");
+//
+//        board.printBoard();
+//        System.out.println();
+//
+//        for(String nMove : moves) {
+//            board.performMove(nMove);
+//            board.printBoard();
+//            System.out.println();
+//        }
 
-        board.printBoard();
-        System.out.println();
+        Scanner in = new Scanner(System.in);
 
-        for(String nMove : moves) {
-            board.performMove(nMove);
-            board.printBoard();
-            System.out.println();
+        GameFrame frame = new GameFrame();
+        while(true) {
+            frame.getBoard().performMove(in.nextLine());
+            frame.repaint();
         }
+
     }
 }
 

@@ -2,7 +2,7 @@ package com.samson.chess;
 
 import com.samson.chess.pieces.*;
 
-import java.awt.*;
+import java.util.ArrayList;
 
 public class Board {
 
@@ -11,16 +11,34 @@ public class Board {
     private Square enPassantPieceSquare;
     private boolean turn;
 
+    private ArrayList<BoardChange> boardChanges = new ArrayList<>();
+
     public static final String[][] initialBoard = {
-            {"Rb", "Nb", "Kb", "Qb", "Kb", "Bb", "Nb", "Rb"},
+            {"Rb", "Nb", "Bb", "Qb", "Kb", "Bb", "Nb", "Rb"},
             {"Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb", "Pb"},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "},
             {"Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw", "Pw"},
-            {"Rw", "Nw", "Bw", "Qw", "Kw", "Bw", "Nw", "Kw"}
+            {"Rw", "Nw", "Bw", "Qw", "Kw", "Bw", "Nw", "Rw"}
     };
+
+    static class BoardChange {
+        ArrayList<SquareChange> squareChanges = new ArrayList<>();
+    }
+
+    static class SquareChange {
+        Square square;
+        Piece before;
+        Piece after;
+
+        public SquareChange(Square square, Piece before, Piece after) {
+            this.square = square;
+            this.before = before;
+            this.after = after;
+        }
+    }
 
     public Board() {
         initGamePieces();
@@ -65,67 +83,12 @@ public class Board {
         }
     }
 
-//    public boolean attemptMove(Square from, Square target) {
-//
-//        // Check if the squares exist on the board.
-//        if(!isLegalSquare(from) || !isLegalSquare(target)) {
-//            return false;
-//        }
-//
-//        for(Move possibleMove : getPiece(from).getMoves(from.x, from.y, this)) {
-//            if(target.x == possibleMove.targetSquare().x && target.y == possibleMove.targetSquare().y) {
-//
-//                // update board pieces.
-//                move(possibleMove);
-//
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
-
-//    public boolean isValidMove(Square from, Square target) {
-//
-//        // Check if the squares exist on the board.
-//        if(!isLegalSquare(from) || !isLegalSquare(target)) {
-//            return false;
-//        }
-//
-//        for(Move possibleMove : getPiece(from).getMoves(from.x, from.y, this)) {
-//            if(target.x == possibleMove.targetSquare().x && target.y == possibleMove.targetSquare().y) {
-//                return true;
-//            }
-//        }
-//
-//        return false;
-//    }
-
-    public boolean isValidMove(Square fromSquare, Square targetSquare) {
+    public boolean isLegalMove(Square fromSquare, Square targetSquare) {
         if(getPiece(fromSquare) == null) {
             return false;
         }
         return getPiece(fromSquare).isValidMove(fromSquare, targetSquare, this);
     }
-
-//    private void move(Move move) {
-//        board[move.fromSquare().x][move.fromSquare().y] = null;
-//        board[move.targetSquare().x][move.targetSquare().y] = move.fromPiece();
-//
-//        if(move.consequence() != null) {
-//            move(move.consequence());
-//        }
-//
-//        // update enpassant square
-//        if(move.fromPiece().getClass() == Pawn.class && Math.abs(move.fromSquare().y - move.targetSquare().y) == 2) {
-//            this.enPassantPieceSquare = move.targetSquare();
-//            this.enPassantTargetSquare = new Square(move.fromSquare().x, (move.targetSquare().y + move.fromSquare().y) / 2);
-//        }
-//        else {
-//            this.enPassantTargetSquare = null;
-//            this.enPassantPieceSquare = null;
-//        }
-//    }
 
     public Move performMove(Square fromSquare, Square targetSquare) {
         if(getPiece(fromSquare) == null) {
@@ -150,20 +113,20 @@ public class Board {
 
     public boolean inCheck(boolean color) {
         Square kingSquare = null;
-        for(int x = 0; x < 8; x++) {
-            for (int y = 0; y < 8; y++) {
-                if(getPiece(x,y) != null && getPiece(x,y) instanceof King && getPiece(x,y).color == color) {
-                    kingSquare = new Square(x,y);
-                    break;
-                }
-            }
-        }
-        for(int x = 0; x < 8; x++) {
-            for(int y = 0; y < 8; y++) {
-                if(board[x][y] != null && board[x][y].color != color) {
-                    if (isValidMove(new Square(x, y), kingSquare)) {
-                        return true;
+        for(int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if(getPiece(i,j) != null && getPiece(i,j) instanceof King && getPiece(i,j).color == color) {
+                    kingSquare = new Square(i,j);
+                    for(int x = 0; x < 8; x++) {
+                        for(int y = 0; y < 8; y++) {
+                            if(board[x][y] != null && board[x][y].color != color) {
+                                if (getPiece(kingSquare).isValidMove(new Square(x, y), kingSquare, this)) {
+                                    return true;
+                                }
+                            }
+                        }
                     }
+                    break;
                 }
             }
         }
