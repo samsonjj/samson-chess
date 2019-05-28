@@ -11,7 +11,7 @@ public class Board {
     private Square enPassantPieceSquare;
     private boolean turn;
 
-    private ArrayList<BoardChange> boardChanges = new ArrayList<>();
+    private ArrayList<Move> boardChanges = new ArrayList<>();
 
     public static final String[][] initialBoard = {
             {"Rb", "Nb", "Bb", "Qb", "Kb", "Bb", "Nb", "Rb"},
@@ -24,14 +24,15 @@ public class Board {
             {"Rw", "Nw", "Bw", "Qw", "Kw", "Bw", "Nw", "Rw"}
     };
 
-    public static class BoardChange {
+    public static class Move {
         ArrayList<SquareChange> squareChanges = new ArrayList<>();
-        Square beforeEnPassantTargetSquare;
-        Square afterEnPassantTargetSquare;
-        Square beforeEnPassantPieceSquare;
-        Square afterEnPassantPieceSquare;
+        public boolean color;
+        public Square beforeEnPassantTargetSquare;
+        public Square afterEnPassantTargetSquare;
+        public Square beforeEnPassantPieceSquare;
+        public Square afterEnPassantPieceSquare;
         
-        public BoardChange() { }
+        public Move() { }
         public void add(SquareChange change) { squareChanges.add(change); }
         public ArrayList<SquareChange> getSquareChanges() { return squareChanges; }
     }
@@ -98,40 +99,49 @@ public class Board {
         return getPiece(fromSquare).isValidMove(fromSquare, targetSquare, this);
     }
 
-    public Move performMove(Square fromSquare, Square targetSquare) {
+    public void performMove(Square fromSquare, Square targetSquare) {
         if(getPiece(fromSquare) == null) {
             throw new IllegalChessMoveException("No piece was found on the given fromSquare on the board.");
         }
-        BoardChange changes = getPiece(fromSquare).performMove(fromSquare, targetSquare, this);
+        if(!isLegalMove(fromSquare, targetSquare)) {
+            throw new IllegalChessMoveException("Move given was illegal.");
+        }
+        Move changes = getPiece(fromSquare).performMove(fromSquare, targetSquare, this);
         for(SquareChange change : changes.getSquareChanges()) {
             this.board[change.square.getX()][change.square.getY()] = change.after;
         }
+        enPassantPieceSquare = changes.afterEnPassantPieceSquare;
+        enPassantTargetSquare = changes.afterEnPassantTargetSquare;
 
-        // TODO
-        if(inCheck(this.turn)) {
-            System.out.println("IN CHECK!");
-            revertMove(changes);
+
+        this.turn = !this.turn;
+    }
+    public boolean attemptMove(Square fromSquare, Square targetSquare) {
+        try {
+            performMove(fromSquare, targetSquare);
         }
-        else {
-            this.turn = !this.turn;
+        catch(IllegalChessMoveException e) {
+            return false;
         }
-        return new Move();
+        return true;
     }
 
-    public Move performMove(String notation) {
+    public void performMove(String notation) {
 
         int xi = Square.fileToInt(notation.charAt(0));
         int yi = Square.rankToInt(notation.charAt(1));
         int xf = Square.fileToInt(notation.charAt(2));
         int yf = Square.rankToInt(notation.charAt(3));
 
-        return performMove(new Square(xi, yi), new Square(xf, yf));
+        performMove(new Square(xi, yi), new Square(xf, yf));
     }
 
-    public void revertMove(BoardChange move) {
-        for(SquareChange change : move.getSquareChanges()) {
+    public void revertMove(Move changes) {
+        for(SquareChange change : changes.getSquareChanges()) {
             board[change.square.getX()][change.square.getY()] = change.before;
         }
+        enPassantPieceSquare = changes.beforeEnPassantPieceSquare;
+        enPassantTargetSquare = changes.afterEnPassantTargetSquare;
     }
 
     public boolean inCheck(boolean color) {
@@ -195,12 +205,38 @@ public class Board {
     public Square getEnPassantPieceSquare() {
         return enPassantPieceSquare;
     }
-    public void setEnPassantTargetSquare(Square square) {
-        enPassantTargetSquare = square;
-    }
-    public void setEnPassantPieceSquare(Square square) {
-        enPassantPieceSquare = square;
-    }
 
     public boolean getTurn() { return turn; }
+
+//    public ArrayList<Move> getAllLegalMoves() {
+//        ArrayList<Move> moveList = new ArrayList<>();
+//        for(int i = 0; i < board.length; i++) {
+//            for(int j = 0; j < board[i].length; j++) {
+//                if(board[i][j] != null) {
+//                    for(Move move : board[i][j].getMoves()) {
+//                        moveList.add(move);
+//                    }
+//                }
+//            }
+//        }
+//        return moveList;
+//    }
+
+    public boolean wouldBeInCheck(Move move) {
+
+        // perform move
+        for(SquareChange change : move.getSquareChanges()) {
+            this.board[change.square.getX()][change.square.getY()] = change.after;
+        }
+        enPassantPieceSquare = move.afterEnPassantPieceSquare;
+        enPassantTargetSquare = move.afterEnPassantTargetSquare;
+
+        // look for check
+        boolean inCheck = inCheck(move.color);
+
+        // revert move
+        revertMove(move);
+
+        return inCheck;
+    }
 }

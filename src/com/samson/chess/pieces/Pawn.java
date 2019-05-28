@@ -57,6 +57,11 @@ public class Pawn extends Piece {
         // the target square must be empty
         if(fromSquare.getY() + direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
                 && board.getPiece(targetSquare) == null) {
+            // Possibly puts player in check.
+            Board.Move move = performMove(fromSquare, targetSquare, board);
+            if(board.wouldBeInCheck(move)) {
+                return false;
+            }
             return true;
         }
 
@@ -66,6 +71,11 @@ public class Pawn extends Piece {
                 && fromSquare.getY() + 2 * direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
                 && board.getPiece(fromSquare.getX(), fromSquare.getY() + direction) == null
                 && board.getPiece(targetSquare) == null) {
+            // Possibly puts player in check.
+            Board.Move move = performMove(fromSquare, targetSquare, board);
+            if(board.wouldBeInCheck(move)) {
+                return false;
+            }
             return true;
         }
 
@@ -75,27 +85,24 @@ public class Pawn extends Piece {
     }
 
     @Override
-    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
-        if(!this.isValidMove(fromSquare, targetSquare, board)) {
-            throw new IllegalChessMoveException();
-        }
+    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
+
+        Board.Move changes = super.performMove(fromSquare, targetSquare, board);
 
         // if double move, change enpassant squares
         int direction = this.color == Piece.WHITE ? 1 : -1;
         if(fromSquare.getY() + 2 * direction == targetSquare.getY()) {
-            board.setEnPassantTargetSquare(new Square(fromSquare.getX(), fromSquare.getY() + direction));
-            board.setEnPassantPieceSquare(targetSquare);
+            changes.afterEnPassantTargetSquare = new Square(fromSquare.getX(), fromSquare.getY() + direction);
+            changes.afterEnPassantPieceSquare = targetSquare;
         }
         // check if enpassant
         else if(Math.abs(fromSquare.getX() - targetSquare.getX()) == 1
+                && board.getEnPassantTargetSquare() != null
                 && board.getEnPassantTargetSquare().equals(targetSquare)) {
             Square enPassantPieceSquare = board.getEnPassantPieceSquare();
-            Board.BoardChange changes = super.performMove(fromSquare, targetSquare, board);
             changes.add(new Board.SquareChange(enPassantPieceSquare, board.getPiece(enPassantPieceSquare), null));
-            return changes;
         }
-
-        return super.performMove(fromSquare, targetSquare, board);
+        return changes;
     }
 
     /*

@@ -14,11 +14,16 @@ public class Queen extends Piece {
             return false;
         }
 
+        Board.Move move = performMove(fromSquare, targetSquare, board);
+        if(board.wouldBeInCheck(move)) {
+            return false;
+        }
+
         return attacksSquare(fromSquare, targetSquare, board);
     }
 
     @Override
-    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
+    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
         return super.performMove(fromSquare, targetSquare, board);
     }
 

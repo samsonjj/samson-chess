@@ -1,7 +1,6 @@
 package com.samson.chess.pieces;
 
 import com.samson.chess.Board;
-import com.samson.chess.Move;
 import com.samson.chess.Square;
 
 public class Knight extends Piece {
@@ -16,11 +15,16 @@ public class Knight extends Piece {
             return false;
         }
 
+        Board.Move move = performMove(fromSquare, targetSquare, board);
+        if(board.wouldBeInCheck(move)) {
+            return false;
+        }
+
         return attacksSquare(fromSquare, targetSquare, board);
     }
 
     @Override
-    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
+    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
         return super.performMove(fromSquare, targetSquare, board);
     }
 

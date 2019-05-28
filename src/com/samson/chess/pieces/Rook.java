@@ -1,7 +1,6 @@
 package com.samson.chess.pieces;
 
 import com.samson.chess.Board;
-import com.samson.chess.Move;
 import com.samson.chess.Square;
 
 public class Rook extends Piece {
@@ -12,6 +11,11 @@ public class Rook extends Piece {
     @Override
     public boolean isValidMove(Square fromSquare, Square targetSquare, Board board) {
         if(!super.isValidMove(fromSquare, targetSquare, board)) {
+            return false;
+        }
+
+        Board.Move move = performMove(fromSquare, targetSquare, board);
+        if(board.wouldBeInCheck(move)) {
             return false;
         }
 
@@ -63,7 +67,7 @@ public class Rook extends Piece {
     }
 
     @Override
-    public Board.BoardChange performMove(Square fromSquare, Square targetSquare, Board board) {
+    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
         return super.performMove(fromSquare, targetSquare, board);
     }
 }

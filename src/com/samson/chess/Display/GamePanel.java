@@ -129,8 +129,7 @@ public class GamePanel extends JPanel implements MouseListener {
 
             }
         }
-        else if (board.isLegalMove(highlightedSquare, clickedSquare)) {
-            board.performMove(highlightedSquare, clickedSquare);
+        else if (board.attemptMove(highlightedSquare, clickedSquare)) {
             highlightedSquare = null;
         }
         else if(board.getPiece(clickedSquare) != null && board.getPiece(clickedSquare).color == board.getTurn()) {
