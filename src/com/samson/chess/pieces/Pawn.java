@@ -2,6 +2,8 @@ package com.samson.chess.pieces;
 
 import com.samson.chess.*;
 
+import java.util.ArrayList;
+
 public class Pawn extends Piece {
 
     public Pawn(boolean color) {
@@ -47,6 +49,7 @@ public class Pawn extends Piece {
 
     @Override
     public boolean isValidMove(Square fromSquare, Square targetSquare, Board board) {
+
         if(!super.isValidMove(fromSquare, targetSquare, board)) {
             return false;
         }
@@ -58,7 +61,7 @@ public class Pawn extends Piece {
         if(fromSquare.getY() + direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
                 && board.getPiece(targetSquare) == null) {
             // Possibly puts player in check.
-            Board.Move move = performMove(fromSquare, targetSquare, board);
+            Board.Move move = getMove(fromSquare, targetSquare, board);
             if(board.wouldBeInCheck(move)) {
                 return false;
             }
@@ -67,12 +70,12 @@ public class Pawn extends Piece {
 
         // two moves forward
         // target square and intermediate square must be empty
-        if(!hasMoved(this.color, fromSquare.getX(), fromSquare.getY())
+        if(!hasMoved(fromSquare)
                 && fromSquare.getY() + 2 * direction == targetSquare.getY() && fromSquare.getX() == targetSquare.getX()
                 && board.getPiece(fromSquare.getX(), fromSquare.getY() + direction) == null
                 && board.getPiece(targetSquare) == null) {
             // Possibly puts player in check.
-            Board.Move move = performMove(fromSquare, targetSquare, board);
+            Board.Move move = getMove(fromSquare, targetSquare, board);
             if(board.wouldBeInCheck(move)) {
                 return false;
             }
@@ -85,9 +88,9 @@ public class Pawn extends Piece {
     }
 
     @Override
-    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
+    public Board.Move getMove(Square fromSquare, Square targetSquare, Board board) {
 
-        Board.Move changes = super.performMove(fromSquare, targetSquare, board);
+        Board.Move changes = super.getMove(fromSquare, targetSquare, board);
 
         // if double move, change enpassant squares
         int direction = this.color == Piece.WHITE ? 1 : -1;
@@ -108,8 +111,8 @@ public class Pawn extends Piece {
     /*
      *  returns true if the pawn is located on a possible initial square (second rank).
      */
-    public static boolean hasMoved(boolean color, int x, int y) {
-        return !((color == WHITE && y == 1) || (color == BLACK && y == 6));
+    public boolean hasMoved(Square square) {
+        return !((color == WHITE && square.getY() == 1) || (color == BLACK && square.getY() == 6));
     }
 
     @Override
@@ -136,5 +139,15 @@ public class Pawn extends Piece {
         return false;
     }
 
+    public ArrayList<Square> targetSquareList(Square fromSquare) {
+        ArrayList<Square> list = new ArrayList<>();
+        int direction = this.color == Piece.WHITE ? 1 : -1;
+        list.add(new Square(fromSquare.getX() - 1, fromSquare.getY() + direction));
+        list.add(new Square(fromSquare.getX(), fromSquare.getY() + direction));
+        list.add(new Square(fromSquare.getX() + 1, fromSquare.getY() + direction));
+        if(!this.hasMoved(fromSquare)) list.add(new Square(fromSquare.getX(), fromSquare.getY() + 2 * direction));
 
+        Board.removeIllegalSquares(list);
+        return list;
+    }
 }

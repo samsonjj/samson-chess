@@ -3,6 +3,8 @@ package com.samson.chess.pieces;
 import com.samson.chess.Board;
 import com.samson.chess.Square;
 
+import java.util.ArrayList;
+
 public class Queen extends Piece {
     public Queen(boolean color) {
         super(color, 'Q');
@@ -14,7 +16,7 @@ public class Queen extends Piece {
             return false;
         }
 
-        Board.Move move = performMove(fromSquare, targetSquare, board);
+        Board.Move move = getMove(fromSquare, targetSquare, board);
         if(board.wouldBeInCheck(move)) {
             return false;
         }
@@ -23,8 +25,8 @@ public class Queen extends Piece {
     }
 
     @Override
-    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
-        return super.performMove(fromSquare, targetSquare, board);
+    public Board.Move getMove(Square fromSquare, Square targetSquare, Board board) {
+        return super.getMove(fromSquare, targetSquare, board);
     }
 
     @Override
@@ -52,6 +54,25 @@ public class Queen extends Piece {
         }
 
         return true;
+    }
+
+    public ArrayList<Square> targetSquareList(Square fromSquare) {
+        ArrayList<Square> list = new ArrayList<>();
+        for(int i = 1; i <= 7; i++) {
+            list.add(new Square(fromSquare.getX() + i, fromSquare.getY() + i));
+            list.add(new Square(fromSquare.getX() + i, fromSquare.getY() - i));
+            list.add(new Square(fromSquare.getX() - i, fromSquare.getY() + i));
+            list.add(new Square(fromSquare.getX() - i, fromSquare.getY() - i));
+        }
+        for(int i = 1; i <= 7; i++) {
+            list.add(new Square(fromSquare.getX() + i, fromSquare.getY()));
+            list.add(new Square(fromSquare.getX() - i, fromSquare.getY()));
+            list.add(new Square(fromSquare.getX(), fromSquare.getY() + i));
+            list.add(new Square(fromSquare.getX(), fromSquare.getY() - i));
+        }
+
+        Board.removeIllegalSquares(list);
+        return list;
     }
 
 }

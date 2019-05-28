@@ -2,6 +2,8 @@ package com.samson.chess.pieces;
 
 import com.samson.chess.*;
 
+import java.util.ArrayList;
+
 public class King extends Piece {
 
     public King(boolean color) {
@@ -23,10 +25,11 @@ public class King extends Piece {
 
     @Override
     public boolean isValidMove(Square fromSquare, Square targetSquare, Board board) {
+
         if(!super.isValidMove(fromSquare, targetSquare, board)) {
             return false;
         }
-        Board.Move move = performMove(fromSquare, targetSquare, board);
+        Board.Move move = getMove(fromSquare, targetSquare, board);
         if(board.wouldBeInCheck(move)) {
             return false;
         }
@@ -35,8 +38,8 @@ public class King extends Piece {
     }
 
     @Override
-    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
-        return super.performMove(fromSquare, targetSquare, board);
+    public Board.Move getMove(Square fromSquare, Square targetSquare, Board board) {
+        return super.getMove(fromSquare, targetSquare, board);
     }
 
     @Override
@@ -54,5 +57,17 @@ public class King extends Piece {
         }
 
         return true;
+    }
+
+    public ArrayList<Square> targetSquareList(Square fromSquare) {
+        ArrayList<Square> list = new ArrayList<>();
+        for(int i = -1; i <= 1; i++) {
+            for(int j = -1; j <= 1; j++) {
+                if(i == 0 && j == 0) continue;
+                list.add(new Square(fromSquare.getX() + i, fromSquare.getY() + j));
+            }
+        }
+        Board.removeIllegalSquares(list);
+        return list;
     }
 }

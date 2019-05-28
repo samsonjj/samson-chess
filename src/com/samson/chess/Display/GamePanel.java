@@ -21,6 +21,8 @@ public class GamePanel extends JPanel implements MouseListener {
     public static final Color DARK = new Color(159, 122, 67);
 
     private HashMap<String, Image> pieceImages = new HashMap<>();
+    private BufferedImage leftArrow;
+    private BufferedImage rightArrow;
 
     Square highlightedSquare;
 
@@ -28,7 +30,7 @@ public class GamePanel extends JPanel implements MouseListener {
         super(new FlowLayout(), true);
         board = new Board();
         try {
-            BufferedImage spriteSheet = ImageIO.read(new File("C:\\Users\\jonat\\home\\code\\samson-chess\\src\\com\\samson\\chess\\1280px-Chess_Pieces_Sprite.svg.png"));
+            BufferedImage spriteSheet = ImageIO.read(new File("resources/images/1280px-Chess_Pieces_Sprite.svg.png"));
             loadPieceImage("Kw", spriteSheet);
             loadPieceImage("Qw", spriteSheet);
             loadPieceImage("Bw", spriteSheet);
@@ -41,6 +43,11 @@ public class GamePanel extends JPanel implements MouseListener {
             loadPieceImage("Nb", spriteSheet);
             loadPieceImage("Rb", spriteSheet);
             loadPieceImage("Pb", spriteSheet);
+
+            BufferedImage leftRightArrow = ImageIO.read(new File("resources/images/left-right-arrow.png"));
+            this.leftArrow = leftRightArrow.getSubimage(0, 0, 176, 512);
+            this.rightArrow = leftRightArrow.getSubimage(335, 0, 512-335, 512);
+
         } catch(Exception e) {
             e.printStackTrace();
             throw new Error();
@@ -86,6 +93,9 @@ public class GamePanel extends JPanel implements MouseListener {
         if(highlightedSquare != null) {
             graphics2D.drawRect(50 + highlightedSquare.getX() * 50, 50 + (7-highlightedSquare.getY()) * 50, 50, 50);
         }
+
+        // paint arrows
+        graphics2D.drawImage(leftArrow, 200, 460, 15, 30, null);
     }
 
     private void loadPieceImage(String pieceAndColor, BufferedImage spriteSheet) {
@@ -119,6 +129,7 @@ public class GamePanel extends JPanel implements MouseListener {
     public Board getBoard() {
         return board;
     }
+
     public void clickSquare(int x, int y) {
         Square clickedSquare = new Square(x, y);
         if(highlightedSquare == null) {
@@ -131,6 +142,9 @@ public class GamePanel extends JPanel implements MouseListener {
         }
         else if (board.attemptMove(highlightedSquare, clickedSquare)) {
             highlightedSquare = null;
+            if(board.gameOver()) {
+                System.out.println("GAME OVER, WINNER IS " + (board.winner() ? "WHITE" : "BLACK"));
+            }
         }
         else if(board.getPiece(clickedSquare) != null && board.getPiece(clickedSquare).color == board.getTurn()) {
             highlightedSquare = clickedSquare;
@@ -145,8 +159,10 @@ public class GamePanel extends JPanel implements MouseListener {
     }
 
     public void mouseReleased(MouseEvent e) {
-        clickSquare((e.getX()-50) / 50, 7 - (e.getY()-50) / 50);
-        this.repaint();
+        if(Board.isLegalSquare(new Square((e.getX()-50) / 50, 7 - (e.getY()-50) / 50))) {
+            clickSquare((e.getX()-50) / 50, 7 - (e.getY()-50) / 50);
+            this.repaint();
+        }
     }
 
     public void mouseEntered(MouseEvent e) {

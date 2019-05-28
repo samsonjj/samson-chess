@@ -1,7 +1,6 @@
 package com.samson.chess.pieces;
 
 import com.samson.chess.Board;
-import com.samson.chess.IllegalChessMoveException;
 import com.samson.chess.Square;
 
 import java.util.ArrayList;
@@ -47,24 +46,27 @@ public abstract class Piece {
         return true;
     }
 
-    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
+    public Board.Move getMove(Square fromSquare, Square targetSquare, Board board) {
 
         // save target piece in variable, since it may change during move.
         Piece targetPiece = board.getPiece(targetSquare);
 
-        Board.Move changes = new Board.Move();
+        Board.Move move = new Board.Move(fromSquare, targetSquare);
 
-        changes.add(new Board.SquareChange(fromSquare, board.getPiece(fromSquare), null));
-        changes.add(new Board.SquareChange(targetSquare, board.getPiece(targetSquare), this));
-        changes.beforeEnPassantPieceSquare = board.getEnPassantPieceSquare();
-        changes.beforeEnPassantTargetSquare = board.getEnPassantTargetSquare();
-        changes.afterEnPassantPieceSquare = null;
-        changes.afterEnPassantPieceSquare = null;
-        changes.color = this.color;
+        move.add(new Board.SquareChange(fromSquare, board.getPiece(fromSquare), null));
+        move.add(new Board.SquareChange(targetSquare, board.getPiece(targetSquare), this));
+        move.beforeEnPassantPieceSquare = board.getEnPassantPieceSquare();
+        move.beforeEnPassantTargetSquare = board.getEnPassantTargetSquare();
+        move.afterEnPassantPieceSquare = null;
+        move.afterEnPassantPieceSquare = null;
+        move.color = this.color;
 
-        return changes;
+        return move;
     }
 
+    // returns true if the piece on 'fromSquare' from 'board' can capture on 'targetSquare' if
+    // there were a pawn (or some other arbitrary non-king piece) on 'targetSquare', and ignoring
+    // all other pieces on the board
     public boolean attacksSquare(Square fromSquare, Square targetSquare, Board board) {
         if(!Board.isLegalSquare(fromSquare) || !Board.isLegalSquare(targetSquare)) {
             return false;
@@ -74,4 +76,17 @@ public abstract class Piece {
         }
         return true;
     }
+
+    public ArrayList<Board.Move> getAllLegalMoves(Square fromSquare, Board board) {
+        ArrayList<Square> targetSquares = targetSquareList(fromSquare);
+        ArrayList<Board.Move> legalMoves = new ArrayList<>();
+        for(Square targetSquare: targetSquares) {
+            if (board.isLegalMove(fromSquare, targetSquare)) {
+                legalMoves.add(this.getMove(fromSquare, targetSquare, board));
+            }
+        }
+        return legalMoves;
+    }
+
+    public abstract ArrayList<Square> targetSquareList(Square fromSquare);
 }

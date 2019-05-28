@@ -3,6 +3,8 @@ package com.samson.chess.pieces;
 import com.samson.chess.Board;
 import com.samson.chess.Square;
 
+import java.util.ArrayList;
+
 public class Knight extends Piece {
 
     public Knight(boolean color) {
@@ -14,18 +16,23 @@ public class Knight extends Piece {
         if(!super.isValidMove(fromSquare, targetSquare, board)) {
             return false;
         }
+        System.out.println(board.getTurn());
 
-        Board.Move move = performMove(fromSquare, targetSquare, board);
+        Board.Move move = getMove(fromSquare, targetSquare, board);
+        System.out.println(board.getTurn());
+
         if(board.wouldBeInCheck(move)) {
             return false;
         }
+        System.out.println(board.getTurn());
+
 
         return attacksSquare(fromSquare, targetSquare, board);
     }
 
     @Override
-    public Board.Move performMove(Square fromSquare, Square targetSquare, Board board) {
-        return super.performMove(fromSquare, targetSquare, board);
+    public Board.Move getMove(Square fromSquare, Square targetSquare, Board board) {
+        return super.getMove(fromSquare, targetSquare, board);
     }
 
     @Override
@@ -44,6 +51,23 @@ public class Knight extends Piece {
         }
 
         return true;
+    }
+
+    public ArrayList<Square> targetSquareList(Square fromSquare) {
+        ArrayList<Square> list = new ArrayList<>();
+        Square square;
+        list.add(new Square(fromSquare.getX() - 1, fromSquare.getY() + 2));
+        list.add(new Square(fromSquare.getX() - 1, fromSquare.getY() - 2));
+        list.add(new Square(fromSquare.getX() + 1, fromSquare.getY() + 2));
+        list.add(new Square(fromSquare.getX() + 1, fromSquare.getY() - 2));
+        list.add(new Square(fromSquare.getX() - 2, fromSquare.getY() + 1));
+        list.add(new Square(fromSquare.getX() - 2, fromSquare.getY() - 1));
+        list.add(new Square(fromSquare.getX() + 2, fromSquare.getY() + 1));
+        list.add(new Square(fromSquare.getX() + 2, fromSquare.getY() - 1));
+
+        Board.removeIllegalSquares(list);
+
+        return list;
     }
 }
 

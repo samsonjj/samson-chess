@@ -3,7 +3,9 @@ package com.samson;
 import com.samson.chess.Board;
 import com.samson.chess.Display.GameFrame;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.io.File;
 import java.util.Scanner;
 
 import static java.lang.Thread.sleep;
@@ -18,6 +20,8 @@ public class Main {
     public static void main(String[] args) throws InterruptedException {
 
         System.out.println("Starting game.");
+        System.out.println(System.getProperty("user.dir"));
+
 
 //        Board board = new Board();
 //        System.out.println("Board initialized.");
@@ -26,7 +30,7 @@ public class Main {
 //        System.out.println();
 //
 //        for(String nMove : moves) {
-//            board.performMove(nMove);
+//            board.getMove(nMove);
 //            board.printBoard();
 //            System.out.println();
 //        }
